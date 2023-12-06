@@ -18,11 +18,10 @@ export const register = async (req, res) => {
 
     // Save the new user to the database
     const userSaved = await newUser.save();
-
     const token = await createAccessToken({ id: userSaved._id });
-
+    res.cookie("token", token);
     // Send a response after successfully registering the user
-    res.send({
+    res.json({
       id: userSaved._id,
       username: userSaved.username,
       email: userSaved.email,
@@ -32,10 +31,49 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send({ message : error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
-export const login = (req, res) => {
-  res.send('login');
+
+
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const userFound = await User.findOne({ email });
+
+    if (!userFound) {
+      return res.status(400).json({ message: "User not found." });
+    }
+
+    const isMatch = await bcrypt.compare(password, userFound.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect password" });
+    }
+
+    const token = await createAccessToken({ id: userFound._id });
+
+    res.cookie("token", token);
+    res.json({
+      id: userFound._id,
+      username: userFound.username,
+      email: userFound.email,
+      createdAt: userFound.createdAt,
+      updatedAt: userFound.updatedAt,
+      token,  // Include the token in the response
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
 };
+
+export const logout = async (req, res) => {
+
+}
+
+export const profile = async (req, res) => {
+  res.send('profile')
+}
