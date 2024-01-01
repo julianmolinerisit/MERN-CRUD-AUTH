@@ -14,7 +14,7 @@ export const register = async (req, res) => {
       username,
       email,
       password: passwordHash,  // Save the hashed password
-    });
+    });;,
 
     // Save the new user to the database
     const userSaved = await newUser.save();
